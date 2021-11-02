@@ -1,15 +1,17 @@
-// Copyright (c) 2021 Phil Leblanc  -- License: MIT
-// ---------------------------------------------------------------------
+// Copyright (c) 2021 Phil Leblanc -- License: MIT
+//----------------------------------------------------------------------
 /*
 luamonocypher - a Lua wrapping for the Monocypher library
 
 */
-// ---------------------------------------------------------------------
-// lua binding
+//----------------------------------------------------------------------
+// lua binding name, version
 
 #define LIBNAME luamonocypher
-#define VERSION "luamonocypher-0.1"
+#define VERSION "luamonocypher-0.2"
 
+
+//----------------------------------------------------------------------
 #include <assert.h>
 #include <string.h>	// memcpy()
 
@@ -45,8 +47,8 @@ luamonocypher - a Lua wrapping for the Monocypher library
 //----------------------------------------------------------------------
 // lua binding   (all exposed functions are prefixed with "mc_")
 
-# define LERR(msg) return luaL_error(L, msg)
 
+# define LERR(msg) return luaL_error(L, msg)
 
 //----------------------------------------------------------------------
 // randombytes()
@@ -81,61 +83,73 @@ static int mc_randombytes(lua_State *L) {
 
 
 static int mc_encrypt(lua_State *L) {
-	// Lua API: encrypt(k, n, m [, npf])
-	//  k: key string (32 bytes)
-	//  n: nonce string (24 bytes)
-	//  m: message (plain text) string 
-	//  npf: optional flag - if true, nonce is prepended to the 
-	//       encrypted text. Default is false.
-	//  return encrypted text string
+	// Authenticated encryption (XChacha20 + Poly1305)
+	// Lua API: encrypt(k, n, m [, ninc]) return c
+	// k: key string (32 bytes)
+	// n: nonce string (24 bytes)
+	// m: message (plain text) string 
+	// ninc: optional nonce increment (useful when encrypting a long
+	//   message as a sequence of block). The same parameter n can 
+	//   be used for the sequence. ninc is added to n for each block, 
+	//   so the actual nonce used for each block encryption is distinct.
+	//   ninc defaults to 0 (the nonce n is used as-is).
+	// return encrypted message as a binary string c
+	//   c includes the 16-byte MAC, so #c = #m + 16
+	//   (the MAC is stored at the beginning of c)
+
+	
 	int r;
-	size_t mln, nln, kln, pfxln, bufln;
+	size_t mln, nln, kln, bufln;
 	const char *k = luaL_checklstring(L,1,&kln);
 	const char *n = luaL_checklstring(L,2,&nln);	
 	const char *m = luaL_checklstring(L,3,&mln);	
-	int npf = lua_toboolean(L,4);
+	uint64_t ninc = luaL_optinteger(L, 4, 0);	
 	if (nln != 24) LERR("bad nonce size");
 	if (kln != 32) LERR("bad key size");
-	pfxln = npf ? 24 : 0;
-	bufln = pfxln + 16 + mln;  // nonce-prefix | mac | encrypted msg
+	// allocate a buffer for the encrypted text
+	bufln = mln + 16; //make room for the MAC
 	unsigned char * buf = lua_newuserdata(L, bufln);
-	// mac is prepended to the encr text buffer
-	crypto_lock(buf+pfxln, buf+pfxln+16, k, n, m, mln);
-	if (pfxln > 0) {
-		memcpy(buf, n, pfxln); // copy the nonce if needed
-	}
+	// compute the actual nonce
+	char actn[24]; // "actual nonce = n + ninc"
+	memcpy(actn, n, 24); 
+	// addition modulo 2^64 over the first 8 bytes of n
+	// (overflow not an issue: uint addition overflow _is_ defined)
+	(*(uint64_t *) actn) = (*(uint64_t *) actn) + ninc;
+	// MAC will be stored at buf, encrypted text at buf+16
+	crypto_lock(buf, buf+16, k, actn, m, mln);
 	lua_pushlstring (L, buf, bufln); 
 	return 1;
 } // lock()
 
 static int mc_decrypt(lua_State *L) {
-	// Lua API: decrypt(k, [n,] c)
+	// Authenticated decryption (XChacha20 + Poly1305)
+	// Lua API: decrypt(k, n, c [, ninc]) return m
 	//  k: key string (32 bytes)
-	//  n: optional nonce string (24 bytes)
-	//	if the nonce is not present, ie 'decrypt(k, c)',
-	//      it is assumed to be prepended to the encrypted string c
-	//  c: encrypted message string 
-	//  return plain text string 
-	//      or (nil, error msg if MAC is not valid)
+	//  n: nonce string (24 bytes)
+	//  c: encrypted message string. 
+	//     (MAC has been stored by encrypt() at the beginning of c)
+	//  ninc: optional nonce increment (see above. defaults to 0)
+	//  return plain text string or nil, errmsg if MAC is not valid
 	int r = 0;
-	size_t cln, nln, kln, boxln;
-	const char *k = luaL_checklstring(L,1,&kln);
-	const char *n = luaL_checklstring(L,2,&nln);	
-	const char *c = luaL_optlstring(L,3, "",&cln);	
-	if (cln == 0) {
-		// n is the encrypted string with prepended nonce
-		// so the encrypted string starts at n + 24
-		c = n + 24;  
-		cln = nln - 24;
-		nln = 24;
-	}
+	size_t cln, nln, kln;
+	const char *k = luaL_checklstring(L, 1, &kln);
+	const char *n = luaL_checklstring(L, 2, &nln);	
+	const char *c = luaL_checklstring(L, 3, &cln);	
+	uint64_t ninc = luaL_optinteger(L, 4, 0);	
 	if (nln != 24) LERR("bad nonce size");
 	if (kln != 32) LERR("bad key size");
 	if (cln < 16) LERR("bad msg size");
-
+	
+	// allocate a buffer for the decrypted text
 	unsigned char * buf = lua_newuserdata(L, cln);
-	// so now, mac is at c, encrypted text is at c+16
-	r = crypto_unlock(buf, k, n, c, c+16, cln-16);
+	// compute the actual nonce
+	char actn[24]; // "actual nonce = n + ninc"
+	memcpy(actn, n, 24); 
+	// addition modulo 2^64 over the first 8 bytes of n
+	// (overflow not an issue: uint addition overflow _is_ defined)
+	(*(uint64_t *) actn) = (*(uint64_t *) actn) + ninc;
+	// mac is at c, encrypted text is at c+16, its length is cln-16
+	r = crypto_unlock(buf, k, actn, c, c+16, cln-16);
 	if (r != 0) { 
 		lua_pushnil (L);
 		lua_pushliteral(L, "decrypt error");

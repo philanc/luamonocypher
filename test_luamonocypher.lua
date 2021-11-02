@@ -1,10 +1,9 @@
 
 -- quick and dirty test of the major luamonocypher functions
 
-
 mc = require"luamonocypher"
 
-
+------------------------------------------------------------------------
 -- some local definitions
 
 local strf = string.format
@@ -63,6 +62,9 @@ local function px(s, msg)
 	print("--", msg or "")
 	print(stohex(s, 16, " ")) 
 end
+
+------------------------------------------------------------------------
+-- Monocypher test
 
 print("------------------------------------------------------------")
 print(_VERSION, mc.VERSION )
@@ -134,12 +136,10 @@ m2, msg = mc.decrypt(k, n, c)
 assert(m2)
 assert(m2 == m)
 
--- prefix and offset - prepend the nonce:
-c = mc.encrypt(k, n, m, true)
-assert(#c == #m + 16 + #n)
-n2 = c:sub(1,24)
-assert(c:sub(1,24) == n)
-m2 = mc.decrypt(k, c) -- n not provided so assume it is prepended to c
+
+-- test nonce with an arbitrary "increment"
+c = mc.encrypt(k, n, m, 123)
+m2 = mc.decrypt(k, n, c, 123)
 assert(m2 == m)
 
 ------------------------------------------------------------------------

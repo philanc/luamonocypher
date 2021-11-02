@@ -28,25 +28,27 @@ randombytes(n)
 
 --- Authenticated encryption
 
-encrypt(key, nonce, plain [, npf]) => crypted
+encrypt(key, nonce, plain [, ninc]) => crypted
 	authenticated encryption using Xchacha20 and a Poly1305 MAC
 	key must be a 32-byte string
 	nonce must be a 24-byte string
 	plain is the text to encrypt as a string
-	npf is an optional flag. If it is true, the nonce is prepended 
-	to the encrypted text. 
-	Return the encrypted text as a string. The encrypted text includes 
-	the 16-byte MAC. So if npf is true, #crypted == #plain + 40; else
-	#crypted == #plain + 16
+	ninc: optional nonce increment (useful when encrypting a long text
+	   as a sequence of block). The same parameter n can be used for 
+	   the sequence. ninc is added to n for each block, so the actual
+	   nonce used for each block encryption is distinct.
+	   ninc defaults to 0 (the nonce n is used as-is)
+	return the encrypted text as a string. The encrypted text includes 
+	the 16-byte MAC. So  #crypted == #plain + 16
 	
-decrypt(key, [nonce,] crypted) => plain
+decrypt(key, nonce, crypted [, ninc]) => plain
 	authenticated decryption - verification of the Poly1305 MAC
 	and decryption with Xcahcha20.
 	key must be a 32-byte string
-	nonce is optional. If not provided it is assumed to be prepended
-	to the crypted string. Else nonce must be a 24-byte string
+	nonce must be a 24-byte string
 	crypted is the text to decrypt as a string
-	Return the decrypted text as a string or nil if the MAC 
+	ninc: optional nonce increment (see above. defaults to 0)
+	return the decrypted plain text as a string or nil if the MAC 
 	verification fails.
 
 
