@@ -95,8 +95,8 @@ static int mc_encrypt(lua_State *L) {
 	//   so the actual nonce used for each block encryption is distinct.
 	//   ninc defaults to 0 (the nonce n is used as-is).
 	// return encrypted message as a binary string c
-	//   c includes the 16-byte MAC, so #c = #m + 16
-	//   (the MAC is stored at the beginning of c)
+	//   c includes the 16-byte MAC (or "tag"), so #c = #m + 16
+	//   (the MAC is stored at the end of c)
 
 	
 	int r;
@@ -116,8 +116,9 @@ static int mc_encrypt(lua_State *L) {
 	// addition modulo 2^64 over the first 8 bytes of n
 	// (overflow not an issue: uint addition overflow _is_ defined)
 	(*(uint64_t *) actn) = (*(uint64_t *) actn) + ninc;
-	// MAC will be stored at buf, encrypted text at buf+16
-	crypto_lock(buf, buf+16, k, actn, m, mln);
+	// encrypted text will be stored at buf, 
+	// MAC at end of encrypted text
+	crypto_lock(buf+mln, buf, k, actn, m, mln);
 	lua_pushlstring (L, buf, bufln); 
 	return 1;
 } // lock()
@@ -128,7 +129,7 @@ static int mc_decrypt(lua_State *L) {
 	//  k: key string (32 bytes)
 	//  n: nonce string (24 bytes)
 	//  c: encrypted message string. 
-	//     (MAC has been stored by encrypt() at the beginning of c)
+	//     (MAC has been stored by encrypt() at the end of c)
 	//  ninc: optional nonce increment (see above. defaults to 0)
 	//  return plain text string or nil, errmsg if MAC is not valid
 	int r = 0;
@@ -149,8 +150,9 @@ static int mc_decrypt(lua_State *L) {
 	// addition modulo 2^64 over the first 8 bytes of n
 	// (overflow not an issue: uint addition overflow _is_ defined)
 	(*(uint64_t *) actn) = (*(uint64_t *) actn) + ninc;
-	// mac is at c, encrypted text is at c+16, its length is cln-16
-	r = crypto_unlock(buf, k, actn, c, c+16, cln-16);
+	// encrypted text is at c, its length is cln-16
+	// MAC is at c + cln - 16
+	r = crypto_unlock(buf, k, actn, c+cln-16, c, cln-16);
 	if (r != 0) { 
 		lua_pushnil (L);
 		lua_pushliteral(L, "decrypt error");

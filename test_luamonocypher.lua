@@ -77,35 +77,30 @@ print("------------------------------------------------------------")
 print("testing authenticated encryption...")
 
 k = hextos[[ 
-  808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f ]]
+	808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f 
+	]]
 n = hextos[[ 07000000404142434445464748494a4b0000000000000000 ]]
 m = "Ladies and Gentlemen of the class of '99: If I could offer you "
 	.. "only one tip for the future, sunscreen would be it."
 
 e = hextos[[
- 45 3c 06 93 a7 40 7f 04 ff 4c 56 ae db 17 a3 c0
- a1 af ff 01 17 49 30 fc 22 28 7c 33 db cf 0a c8
- b8 9a d9 29 53 0a 1b b3 ab 5e 69 f2 4c 7f 60 70
- c8 f8 40 c9 ab b4 f6 9f bf c8 a7 ff 51 26 fa ee
- bb b5 58 05 ee 9c 1c f2 ce 5a 57 26 32 87 ae c5
- 78 0f 04 ec 32 4c 35 14 12 2c fc 32 31 fc 1a 8b
- 71 8a 62 86 37 30 a2 70 2b b7 63 66 11 6b ed 09
- e0 fd d4 c8 60 b7 07 4b e8 94 fa c9 69 73 99 be
- 5c c1
+	453c0693a7407f04ff4c56aedb17a3c0a1afff01174930fc22287c33dbcf0ac8
+	b89ad929530a1bb3ab5e69f24c7f6070c8f840c9abb4f69fbfc8a7ff5126faee
+	bbb55805ee9c1cf2ce5a57263287aec5780f04ec324c3514122cfc3231fc1a8b
+	718a62863730a2702bb76366116bed09e0fdd4c860b7074be894fac9697399be
+	5cc1
 ]]
 
 c = mc.encrypt(k,n,m)
--- MAC is prepended to the encrypted text by monocypher
--- and it is appended in the test vectors here
--- so we should have:
-assert(c:sub(17) .. c:sub(1, 16) == e)
+assert(c == e)
 
 -- xchacha test vector from 
--- https://github.com/golang/crypto/blob/master/chacha20poly1305/ 
+-- https://github.com/golang/crypto/blob/master/chacha20poly1305/ \
 --   chacha20poly1305_vectors_test.go
 
 k = hextos[[ 
-	194b1190fa31d483c222ec475d2d6117710dd1ac19a6f1a1e8e894885b7fa631 ]]
+	194b1190fa31d483c222ec475d2d6117710dd1ac19a6f1a1e8e894885b7fa631
+	]]
 n = hextos[[ 6b07ea26bb1f2d92e04207b447f2fd1dd2086b442a7b6852 ]]
 m = hextos[[
 	f7e11b4d372ed7cb0c0e157f2f9488d8efea0f9bbe089a345f51bdc77e30d139
@@ -117,19 +112,23 @@ e = hextos[[
 	f7e08d2a9aebbe691430011d
 	]]
 c = mc.encrypt(k, n, m)
-assert(c:sub(17) .. c:sub(1, 16) == e)
+assert(c == e)
 
 k = hextos[[ 
-	a60e09cd0bea16f26e54b62b2908687aa89722c298e69a3a22cf6cf1c46b7f8a ]]
+	a60e09cd0bea16f26e54b62b2908687aa89722c298e69a3a22cf6cf1c46b7f8a
+	]]
 n = hextos[[ 92da9d67854c53597fc099b68d955be32df2f0d9efe93614 ]]
 m = hextos[[
-d266927ca40b2261d5a4722f3b4da0dd5bec74e103fab431702309fd0d0f1a259c767b956aa7348ca923d64c04f0a2e898b0670988b15e
+	d266927ca40b2261d5a4722f3b4da0dd5bec74e103fab431702309fd0d0f1a25
+	9c767b956aa7348ca923d64c04f0a2e898b0670988b15e
 	]]
 e = hextos[[
-9dd6d05832f6b4d7f555a5a83930d6aed5423461d85f363efb6c474b6c4c8261b680dea393e24c2a3c8d1cc9db6df517423085833aa21f9ab5b42445b914f2313bcd205d179430
+	9dd6d05832f6b4d7f555a5a83930d6aed5423461d85f363efb6c474b6c4c8261
+	b680dea393e24c2a3c8d1cc9db6df517423085833aa21f9ab5b42445b914f231
+	3bcd205d179430
 	]]
 c = mc.encrypt(k, n, m)
-assert(c:sub(17) .. c:sub(1, 16) == e)
+assert(c == e)
 
 -- decrypt
 m2, msg = mc.decrypt(k, n, c)
@@ -147,10 +146,9 @@ print("testing blake2b...")
 
 t = "The quick brown fox jumps over the lazy dog"
 e = hextos[[
-	A8ADD4BDDDFD93E4877D2746E62817B1
-	16364A1FA7BC148D95090BC7333B3673
-	F82401CF7AA2E4CB1ECD90296E3F14CB
-	5413F8ED77BE73045B13914CDCD6A918  ]]
+	a8add4bdddfd93e4877d2746e62817b116364a1fa7bc148d95090bc7333b3673
+	f82401cf7aa2e4cb1ecd90296e3f14cb5413f8ed77be73045b13914cdcd6a918
+	]]
 
 dig = mc.blake2b(t)
 assert(e == dig)
@@ -220,16 +218,14 @@ assert(not mc.check(sig, pk, t .. "!"))
 print("testing ed25519/sha512 signature...")
 
 sk = hextos[[
-88 9f 5e 0e e3 7f 96 8d b2 69 0b 80 57 90 aa c9
-4f af 88 5e 84 59 d3 0e 22 66 72 10 8b 17 2a ee
-]]
+	889f5e0ee37f968db2690b805790aac94faf885e8459d30e226672108b172aee
+	]]
 
 pk = mc.ed25519_public_key(sk)
 
 assert(pk == hextos[[
-	8b 8a 80 4d 17 9e 01 53 20 77 7b c6 d8 cf 9e ae
-	fb 67 05 cf 51 1d 49 62 d8 c3 5c f3 96 59 a9 57
-]])
+	8b8a804d179e015320777bc6d8cf9eaefb6705cf511d4962d8c35cf39659a957
+	]])
 
 sig = mc.ed25519_sign(sk, pk, t)
 assert(#sig == 64)
@@ -237,11 +233,9 @@ assert(#sig == 64)
 --~ px(pk, 'pk')
 --~ px(sig, 'sig512')
 assert(sig == hextos[[
-	5c 9c 1a 3c 71 db da 12 03 41 ae f1 b2 82 8b aa
-	c6 83 08 c8 80 90 65 13 33 d3 ad 72 5b fc 48 98
-	86 b3 89 03 63 30 53 a7 5b 60 28 29 5a 29 b6 3f
-	2b 51 b5 df 6a 28 77 03 d0 6a e3 74 cf 1c 90 05
-]])
+	5c9c1a3c71dbda120341aef1b2828baac68308c88090651333d3ad725bfc4898
+	86b38903633053a75b6028295a29b63f2b51b5df6a287703d06ae374cf1c9005
+	]])
 
 -- check signature
 assert(mc.ed25519_check(sig, pk, t))
@@ -262,8 +256,8 @@ c0 = os.clock()
 k = mc.argon2i(pw, salt, 100000, 10)
 assert(#k == 32)
 assert(k == hextos[[
-  0d ae 6c e3 2c 7f 1b e7 ad a5 58 fb d5 5f 2e bb
-  e1 49 b4 6c 29 72 5b 73 e5 34 1f 04 b3 38 bf 08 ]])
+	0dae6ce32c7f1be7ada558fbd55f2ebbe149b46c29725b73e5341f04b338bf08
+	]])
   
 print("argon2i (100MBytes, 10 iter) Execution time (sec): ", os.clock()-c0)
 
