@@ -8,7 +8,7 @@ luamonocypher - a Lua wrapping for the Monocypher library
 // lua binding name, version
 
 #define LIBNAME luamonocypher
-#define VERSION "luamonocypher-0.2"
+#define VERSION "luamonocypher-0.3"
 
 
 //----------------------------------------------------------------------
