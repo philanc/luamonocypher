@@ -175,7 +175,7 @@ Targets:
 ```
 	make          -- build luamonocypher.so
 	make test     -- build luamonocypher.so if needed, 
-	                 then run test/test_luamonocypher.lua
+	                 then run test_luamonocypher.lua
 	make clean
 ```
 
