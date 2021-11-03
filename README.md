@@ -1,4 +1,4 @@
-# luamonocypher
+# LuaMonocypher
 
 A Lua wrapper for the excellent Monocypher crypto library by Loup Vaillant -  https://monocypher.org/
 
