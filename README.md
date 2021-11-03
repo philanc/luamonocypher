@@ -21,7 +21,7 @@ The complete documentation of the Monocypher library is available at https://mon
 
 It includes an interface to an OS random generator (it uses getrandom() or /dev/urandom on Linux, or CryptGenRandom on Windows)
 
-luamonocypher API summary:
+LuaMonocypher API summary:
 
 ```
 randombytes(n)
@@ -189,7 +189,7 @@ An alternative Lua installation can be specified:
 
 The original Monocypher source code is dual-licensed (2-clause BSD or CC-0) - see src/monocypher-LICENSE.md
 
-The luamonocypher wrapper library is MIT-licensed.
+The LuaMonocypher wrapper library is MIT-licensed.
 
 
 
