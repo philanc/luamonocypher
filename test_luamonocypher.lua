@@ -180,7 +180,20 @@ k2 = mc.key_exchange(bsk, apk)
 assert(k1 == k2)
 
 ------------------------------------------------------------------------
-print("testing ed25519 signature...")
+print("testing sha512...")
+
+t = "The quick brown fox jumps over the lazy dog"
+e = hextos[[
+	07e547d9586f6a73f73fbac0435ed76951218fb7d0c8d788a309d785436bbb64
+	2e93a252a954f23912547d1e8a3b5ed6e1bfd7097821233fa0538f3db854fee6
+]]
+
+h = mc.sha512(t)
+assert(h == e)
+--~ px(h)
+
+------------------------------------------------------------------------
+print("testing signature...")
 
 local function sign_keypair()
 	local sk = mc.randombytes(32)
@@ -190,10 +203,9 @@ end
 
 pk, sk = sign_keypair() -- signature keypair
 
-t = "The quick brown fox jumps over the lazy dog"
-
 sig = mc.sign(sk, pk, t)
 assert(#sig == 64)
+--~ px(pk, 'pk')
 --~ px(sig, 'sig')
 
 -- check signature
@@ -201,6 +213,41 @@ assert(mc.check(sig, pk, t))
 
 -- modified text doesn't check
 assert(not mc.check(sig, pk, t .. "!"))
+
+--- ed25519
+
+------------------------------------------------------------------------
+print("testing ed25519/sha512 signature...")
+
+sk = hextos[[
+88 9f 5e 0e e3 7f 96 8d b2 69 0b 80 57 90 aa c9
+4f af 88 5e 84 59 d3 0e 22 66 72 10 8b 17 2a ee
+]]
+
+pk = mc.ed25519_public_key(sk)
+
+assert(pk == hextos[[
+	8b 8a 80 4d 17 9e 01 53 20 77 7b c6 d8 cf 9e ae
+	fb 67 05 cf 51 1d 49 62 d8 c3 5c f3 96 59 a9 57
+]])
+
+sig = mc.ed25519_sign(sk, pk, t)
+assert(#sig == 64)
+--~ px(sk, 'sk')
+--~ px(pk, 'pk')
+--~ px(sig, 'sig512')
+assert(sig == hextos[[
+	5c 9c 1a 3c 71 db da 12 03 41 ae f1 b2 82 8b aa
+	c6 83 08 c8 80 90 65 13 33 d3 ad 72 5b fc 48 98
+	86 b3 89 03 63 30 53 a7 5b 60 28 29 5a 29 b6 3f
+	2b 51 b5 df 6a 28 77 03 d0 6a e3 74 cf 1c 90 05
+]])
+
+-- check signature
+assert(mc.ed25519_check(sig, pk, t))
+
+-- modified text doesn't check
+assert(not mc.ed25519_check(sig, pk, t .. "!"))
 
 
 ------------------------------------------------------------------------

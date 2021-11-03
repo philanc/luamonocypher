@@ -19,6 +19,7 @@ luamonocypher - a Lua wrapping for the Monocypher library
 #include "lauxlib.h"
 
 #include "monocypher.h"
+#include "monocypher-ed25519.h"
 
 
 // compatibility with Lua 5.2  --and lua 5.3, added 150621
@@ -303,6 +304,77 @@ static int mc_check(lua_State *L) {
 } // mc_check()
 
 
+//---------------------------------------------------------------------- 
+//--- sha512 and ed25519 signature (compatible with original NaCl)
+
+
+static int mc_sha512(lua_State *L) {
+	// compute the SHA2-512 hash of a string
+	// lua api:  sha512(m) return digest as a binary string
+	// m: the string to be hashed
+	size_t mln; 
+	char digest[64];
+	const char *m = luaL_checklstring (L, 1, &mln);
+	crypto_sha512(digest, m, mln);
+	lua_pushlstring (L, digest, 64); 
+	return 1;
+}// mc_sha512
+
+
+
+static int mc_ed25519_public_key(lua_State *L) {
+	// return the public key associated to an ed25519 secret key
+	// lua api:  sign_public_key(sk) return pk
+	// sk: a secret key (can be any 32-byte random string)
+	// pk: the matching public key
+	size_t skln;
+	unsigned char pk[32];
+	const char *sk = luaL_checklstring(L,1,&skln); // secret key
+	if (skln != 32) LERR("bad sk size");
+	crypto_ed25519_public_key(pk, sk);
+	lua_pushlstring (L, pk, 32); 
+	return 1;
+}//mc_sign_public_key()
+
+static int mc_ed25519_sign(lua_State *L) {
+	// sign a text with a secret key
+	// Lua API: sign(sk, pk, m) return sig
+	//  sk: key string (32 bytes)
+	//  pk: associated public key string (32 bytes)
+	//	m: message to sign (string)
+	//  return signature (a 64-byte string)
+	size_t mln, skln, pkln;
+	const char *sk = luaL_checklstring(L,1,&skln);
+	const char *pk = luaL_checklstring(L,2,&pkln);
+	const char *m = luaL_checklstring(L,3,&mln);	
+	if (skln != 32) LERR("bad key size");
+	if (pkln != 32) LERR("bad pub key size");
+	unsigned char sig[64];
+	crypto_ed25519_sign(sig, sk, pk, m, mln);
+	lua_pushlstring (L, sig, 64); 
+	return 1;
+} // mc_ed25519_sign()
+
+static int mc_ed25519_check(lua_State *L) {
+	// check a text signature with a public key
+	// Lua API: check(sig, pk, m) return boolean
+	//  sig: signature string (64 bytes)
+	//  pk: public key string (32 bytes)
+	//	m: message to verify (string)
+	//  return true if the signature match, or false
+	int r;
+	size_t mln, pkln, sigln;
+	const char *sig = luaL_checklstring(L,1,&sigln);
+	const char *pk = luaL_checklstring(L,2,&pkln);
+	const char *m = luaL_checklstring(L,3,&mln);	
+	if (sigln != 64) LERR("bad signature size");
+	if (pkln != 32) LERR("bad key size");
+	r = crypto_ed25519_check(sig, pk, m, mln);
+	// r == 0 if the signature matches
+	lua_pushboolean (L, (r == 0)); 
+	return 1;
+} // mc_ed25519_check()
+
 
 
 //----------------------------------------------------------------------
@@ -324,6 +396,11 @@ static const struct luaL_Reg mclib[] = {
 	{"sign_public_key", mc_sign_public_key},	
 	{"sign", mc_sign},	
 	{"check", mc_check},	
+	//
+	{"sha512", mc_sha512},	
+	{"ed25519_public_key", mc_ed25519_public_key},	
+	{"ed25519_sign", mc_ed25519_sign},	
+	{"ed25519_check", mc_ed25519_check},	
 	//
 	{NULL, NULL},
 };

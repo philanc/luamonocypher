@@ -28,7 +28,7 @@ LDFLAGS= -shared -fPIC
 # link flags for OSX
 # LDFLAGS=  -bundle -undefined dynamic_lookup -fPIC    
 
-OBJS= luamonocypher.o monocypher.o randombytes.o
+OBJS= luamonocypher.o monocypher.o randombytes.o monocypher-ed25519.o
 
 luamonocypher.so:  src/*.c src/*.h
 	$(CC) -c $(CFLAGS) src/*.c
