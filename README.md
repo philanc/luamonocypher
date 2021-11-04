@@ -103,14 +103,14 @@ key_exchange(sk, pk) => k
 	("their public key").
 	sk, pk and k are 32-byte strings
 
-x25519(s, P1) => P2
+x25519(s, P1) => s.P1
 	// raw scalar multiplication over curve25519
 	// Note: usually this function should not be used directly.
 	// For DH key exchange, the key_exchange() function above 
 	// should be used instead.
 	// --
 	// s: a scalar as a 32-byte string
-	// P1: a point as a 32-byte string
+	// P1: a curve point as a 32-byte string
 	// return the product s.P1 as a 32-byte string
 
 

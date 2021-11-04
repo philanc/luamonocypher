@@ -178,19 +178,10 @@ k2 = mc.key_exchange(bsk, apk)
 assert(k1 == k2)
 
 -- test raw scalar multiplication
-
-sk =  hextos[[
-      889f5e0ee37f968db2690b805790aac94faf885e8459d30e226672108b172aee
-      ]]
-skb = hextos[[
-      88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee88ee
-      ]]
-pkb = mc.public_key(skb)
-p2 = mc.x25519(sk, pkb)
-px(p2)
-assert(p2 == hextos[[
-      f34a2ea5e6d5f0f4a38d5fbf8ddf4592acfcd912c7de60f329cc110fad4c4363
-      ]])
+-- compute directly alice public key with G, the generator of curve25519
+G = '\9\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0'
+apk2 = mc.x25519(ask, G)
+assert(apk2 == apk)
 
 ------------------------------------------------------------------------
 print("testing sha512...")
