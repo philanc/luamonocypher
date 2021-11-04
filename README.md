@@ -103,6 +103,19 @@ key_exchange(sk, pk) => k
 	("their public key").
 	sk, pk and k are 32-byte strings
 
+x25519(s, P1) => P2
+	// raw scalar multiplication over curve25519
+	// Note: this function should usually not be used directly.
+	// For DH key exchange, the key_exchange() function below 
+	// should be used instead.
+	// --
+	// s: a scalar as a 32-byte string
+	// P1: a point as a 32-byte string
+	// return the product s.P1 as a 32-byte string
+	// the bit distribution in P2 is not uniform, so P2 should
+	// not be directly used as a shared key. 
+	// Again, use key_exchange() instead.
+
 
 --- EdDSA signature (RFC 8032). 
 

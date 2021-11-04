@@ -231,7 +231,31 @@ static int mc_x25519_public_key(lua_State *L) {
 	return 1;
 }//mc_x25519_public_key()
 
-static int mc_key_exchange(lua_State *L) {
+static int mc_x25519(lua_State *L) {
+	// raw scalar multiplication over curve25519
+	// Note: this function should usually not be used directly.
+	// For DH key exchange, the key_exchange() function below 
+	// should be used instead.
+	// --
+	// lua api:  x25519(s, P1) => P2
+	// s: a scalar as a 32-byte string
+	// P1: a point as a 32-byte string
+	// return the product s.P1 as a 32-byte string
+	// the bit distribution in P2 is not uniform, so P2 should
+	// not be directly used as a shared key. 
+	// Again, use key_exchange() instead.
+	size_t pkln, skln;
+	unsigned char k[32];
+	const char *sk = luaL_checklstring(L,1,&skln); // your secret key
+	const char *pk = luaL_checklstring(L,2,&pkln); // their public key
+	if (pkln != 32) LERR("bad pk size");
+	if (skln != 32) LERR("bad sk size");
+	crypto_x25519(k, sk, pk);
+	lua_pushlstring(L, k, 32); 
+	return 1;   
+}// mc_x25519()
+
+ static int mc_key_exchange(lua_State *L) {
 	// DH key exchange: compute a session key
 	// lua api:  key_exchange(sk, pk) => k
 	// !! beware, reversed order compared to nacl box_beforenm() !!
@@ -391,6 +415,7 @@ static const struct luaL_Reg mclib[] = {
 	{"x25519_public_key", mc_x25519_public_key},
 	{"public_key", mc_x25519_public_key},  // alias
 	{"key_exchange", mc_key_exchange},
+	{"x25519", mc_x25519},
 	//
 	{"blake2b", mc_blake2b},
 	{"argon2i", mc_argon2i},	
