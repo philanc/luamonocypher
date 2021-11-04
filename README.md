@@ -19,14 +19,15 @@ The complete documentation of the Monocypher library is available at https://mon
 
 ## The Lua wrapper
 
-It includes an interface to an OS random generator (it uses getrandom() or /dev/urandom on Linux, or CryptGenRandom on Windows)
+It includes also some utilities:
+
+* an interface to an OS random generator (it uses getrandom() or /dev/urandom on Linux, or CryptGenRandom on Windows)
+
+* base64 encoding and decoding functions
 
 LuaMonocypher API summary:
 
 ```
-randombytes(n)
-	return a string containing n random bytes
-
 
 --- Authenticated encryption
 
@@ -173,6 +174,23 @@ ed25519_check(sig, pk, text) => is_valid
 	
 Note: contrary to the sign() and sign_open() NaCl functions, the 
 signature is not prepended to the text ("detached signature")
+
+
+--- Utilities
+
+randombytes(n)
+	return a string containing n random bytes
+
+b64encode(str [, linelen])
+	str is the string to base64-enccode
+	linelen is an optional output line length
+	(should be be multiple of 4). default is 72.
+	if linelen == 0, no '\n' is inserted.
+
+b64decode(str)
+	str is the base64-encoded string to decode
+	return the decoded string, or nil if str contains 
+	an invalid character (whitespaces and newlines are ignored)
 
 
 ```
