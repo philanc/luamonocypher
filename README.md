@@ -129,7 +129,7 @@ sign_public_key(sk) => pk
 		sk = randombytes(32)
 		pk = sign_public_key(sk)
 
-sign(sk, text) => sig
+sign(sk, pk, text) => sig
 	sign a text with a secret key
 	sk is the secret key as a 32-byte string
 	text is the text to sign as a string
@@ -159,7 +159,7 @@ ed25519_public_key(sk)
 		sk = randombytes(32)
 		pk = ed25519_public_key(sk)
 
-ed25519_sign(sk, text) => sig
+ed25519_sign(sk, pk, text) => sig
 	sign a text with a secret key
 	sk is the secret key as a 32-byte string
 	text is the text to sign as a string
