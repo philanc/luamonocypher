@@ -1,3 +1,5 @@
+![CI](https://github.com/philanc/luamonocypher/workflows/CI/badge.svg)
+
 # LuaMonocypher
 
 A Lua wrapper for the excellent Monocypher crypto library by Loup Vaillant -  https://monocypher.org/
