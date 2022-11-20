@@ -4,7 +4,7 @@
 
 A Lua wrapper for the excellent Monocypher crypto library by Loup Vaillant -  https://monocypher.org/
 
-The Monocypher library source is included here (currently version 3.1.2)
+The Monocypher library source is included here (currently version 3.1.3)
 
 Monocypher implements:
 
