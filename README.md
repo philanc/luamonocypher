@@ -13,6 +13,7 @@ Monocypher implements:
 * Curve25519-based Diffie-Hellman key exchange (RFC 7748),
 * EdDSA signature (RFC 8032) based on the Ed25519 curve and using Blake2b hash instead of SHA512,
 * SHA2-512 hash function
+* HMAC SHA-512 Keyed-Hashing for Message Authentication using SHA-512 hash
 * Ed25519 signature using SHA512 hash (compatible with the original ed25519 signature functions in NaCl  by Dan Bernstein)
 * Argon2i  (RFC 9106), a modern key derivation function based on Blake2b. Like scrypt, it is designed to be expensive in both CPU and memory.
 
