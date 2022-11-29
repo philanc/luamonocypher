@@ -13,7 +13,7 @@ Monocypher implements:
 * Curve25519-based Diffie-Hellman key exchange (RFC 7748),
 * EdDSA signature (RFC 8032) based on the Ed25519 curve and using Blake2b hash instead of SHA512,
 * SHA2-512 hash function
-* HMAC SHA-512 Keyed-Hashing for Message Authentication using SHA-512 hash
+* HMAC-SHA512 Keyed-Hashing for Message Authentication using SHA512 hash
 * Ed25519 signature using SHA512 hash (compatible with the original ed25519 signature functions in NaCl  by Dan Bernstein)
 * Argon2i  (RFC 9106), a modern key derivation function based on Blake2b. Like scrypt, it is designed to be expensive in both CPU and memory.
 
@@ -75,7 +75,8 @@ blake2b(text, [digest_size [, key]]) => digest
 argon2i(pw, salt, nkb, niter) => k
 	compute a key given a password and some salt
 	This is a password key derivation function similar to scrypt.
-	It is intended to make derivation expensive in both CPU and memory.
+	It is intended to make derivation expensive in both CPU 
+	and memory.
 	pw: the password string
 	salt: some entropy as a string (typically 16 bytes)
 	nkb:  number of kilobytes used in RAM (as large as possible)
@@ -150,7 +151,14 @@ check(sig, pk, text) => is_valid
 
 sha512(m) => digest
 	return the sha512 hash of message m as a 64-byte binary string
-
+	
+hmac_sha512(sk, m)
+	return the hmac-sha512 of message m with secret key sk
+	as a 64-byte binary string.
+	sk is the secret key used to compute the hmac. It is a string 
+	of any length (but keys longer than 128 bytes will be hashed 
+	to a 64-byte string before computing the hmac) 
+	
 ed25519_public_key(sk)
 	return the public key associated to a secret key
 	sk is the secret key as a 32-byte string

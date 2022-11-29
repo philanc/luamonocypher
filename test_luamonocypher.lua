@@ -227,8 +227,9 @@ sk = "This is a shared secret"
 m = "The quick brown fox jumps over the lazy dog"
 
 expected = hextos[[
-    3e9de7c36939c3d4995b0efce117a658fdf6b3404b458b7ae77c919c3f03f5dc9af8bdbe8b81939f7db3a7eaff1a2dbe021ff20f435786200fbf08058eaadf0e
-    ]]
+	3e9de7c36939c3d4995b0efce117a658fdf6b3404b458b7ae77c919c3f03f5dc
+	9af8bdbe8b81939f7db3a7eaff1a2dbe021ff20f435786200fbf08058eaadf0e
+	]]
 
 h = mc.hmac_sha512(sk, m)
 assert(h == expected)
