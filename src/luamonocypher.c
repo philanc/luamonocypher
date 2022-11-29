@@ -8,7 +8,7 @@ luamonocypher - a Lua wrapping for the Monocypher library
 // lua binding name, version
 
 #define LIBNAME luamonocypher
-#define VERSION "luamonocypher-0.3"
+#define VERSION "luamonocypher-0.4"
 
 
 //----------------------------------------------------------------------
@@ -319,7 +319,20 @@ static int ll_sha512(lua_State *L) {
 	return 1;
 }// ll_sha512
 
-
+static int ll_hmac_sha512(lua_State *L) {
+	// compute the HMAC of a message using a SHA-512 hash
+	// Lua api:  hmac_sha512(sk, m) return digest as a binary string
+	//  sk: the shared secret key (a string of any length)
+	//	m: message to sign (string)
+	size_t skln;
+	size_t mln;
+	char digest[64];
+	const char *sk = luaL_checklstring(L, 1, &skln); // secret key
+	const char *m = luaL_checklstring (L, 2, &mln);
+	crypto_hmac_sha512(digest, sk, skln, m, mln);
+	lua_pushlstring (L, digest, 64);
+	return 1;
+}// ll_hmac_sha512
 
 static int ll_ed25519_public_key(lua_State *L) {
 	// return the public key associated to an ed25519 secret key
@@ -547,6 +560,7 @@ static const struct luaL_Reg mclib[] = {
 	{"check", ll_check},	
 	//
 	{"sha512", ll_sha512},	
+	{"hmac_sha512", ll_hmac_sha512},
 	{"ed25519_public_key", ll_ed25519_public_key},	
 	{"ed25519_sign", ll_ed25519_sign},	
 	{"ed25519_check", ll_ed25519_check},	
